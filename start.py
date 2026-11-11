@@ -10,7 +10,9 @@ from templatizer import generate_and_encode_template
 from github_api_helpers import do_the_thing
 
 settings = get_settings()
-pattern = f"{settings.admin_email}"
+# Uncomment this once you have decided what email address will be used to post to the API.
+# pattern = f"{settings.admin_email}"
+pattern = "\\w+"
 github_api_key = settings.github_api_key
 
 
@@ -45,15 +47,18 @@ async def root():
 async def parse_message(message: IncomingEmail):
     message_body = message.payload.stripped_text
     message_sender = message.payload.from_email.split(" ")[0].replace("\"","")
-    recipe_url = contains_url(message_body)
-    if not recipe_url:
+    recipe_urls = contains_url(message_body)
+    if not len(recipe_urls):
         return {"message": "no url found"}
-    recipe = parse_recipe(recipe_url)
-    if not recipe:
-        return {"message": f"no recipe found at URL {recipe_url}"}
-    encoded_template, filename = generate_and_encode_template(recipe, message_sender)
-    do_the_thing(encoded_template, filename)
-    return {"message": "this was valid"}
+    for i in range(len(recipe_urls)):
+        recipe = parse_recipe(recipe_urls[i])
+        if not recipe:
+            print("no recipe found at URL {recipe_url}")
+            break
+        else:
+            encoded_template, filename = generate_and_encode_template(recipe, message_sender)
+            do_the_thing(encoded_template, filename)
+            return {"message": "this was valid"}
 
 
 if __name__ == "__main__":
