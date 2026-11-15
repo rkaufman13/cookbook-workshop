@@ -10,9 +10,7 @@ from templatizer import generate_and_encode_template
 from github_api_helpers import do_the_thing
 
 settings = get_settings()
-# Uncomment this once you have decided what email address will be used to post to the API.
-# pattern = f"{settings.admin_email}"
-pattern = "\\w+"
+pattern = f"{settings.admin_email}"
 github_api_key = settings.github_api_key
 
 
@@ -34,7 +32,7 @@ app = FastAPI()
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body, "request": request}),
+        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
     )
 
 
@@ -43,22 +41,32 @@ async def root():
     return {"message": "Hello World"}
 
 
+@app.post("/test-message")
+async def parse_message(message: IncomingEmail):
+    message_body = message.payload.stripped_text
+    recipe_urls = contains_url(message_body)
+    if not len(recipe_urls):
+            return {"message": "no url(s) found in message body"}
+    for recipe_url in recipe_urls:
+        recipe = parse_recipe(recipe_url)
+        if recipe:
+            return recipe
+        return {"message": f"no recipe found at URL {recipe_url}"}
+
+
 @app.post("/incoming-message")
 async def parse_message(message: IncomingEmail):
     message_body = message.payload.stripped_text
     message_sender = message.payload.from_email.split(" ")[0].replace("\"","")
-    recipe_urls = contains_url(message_body)
-    if not len(recipe_urls):
+    recipe_url = contains_url(message_body)
+    if not recipe_url:
         return {"message": "no url found"}
-    for i in range(len(recipe_urls)):
-        recipe = parse_recipe(recipe_urls[i])
-        if not recipe:
-            print("no recipe found at URL {recipe_url}")
-            break
-        else:
-            encoded_template, filename = generate_and_encode_template(recipe, message_sender)
-            do_the_thing(encoded_template, filename)
-            return {"message": "this was valid"}
+    recipe = parse_recipe(recipe_url)
+    if not recipe:
+        return {"message": f"no recipe found at URL {recipe_url}"}
+    encoded_template, filename = generate_and_encode_template(recipe, message_sender)
+    do_the_thing(encoded_template, filename)
+    return {"message": "this was valid"}
 
 
 if __name__ == "__main__":
