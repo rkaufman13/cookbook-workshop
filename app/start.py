@@ -7,7 +7,7 @@ from config import get_settings
 from validators import contains_url
 from recipe_parsing import parse_recipe
 from templatizer import generate_and_encode_template
-from github_api_helpers import do_the_thing
+from github_api_helpers import create_pr_off_main
 
 settings = get_settings()
 pattern = f"{settings.admin_email}"
@@ -65,8 +65,8 @@ async def parse_message(message: IncomingEmail):
     if not recipe:
         return {"message": f"no recipe found at URL {recipe_url}"}
     encoded_template, filename = generate_and_encode_template(recipe, message_sender)
-    do_the_thing(encoded_template, filename)
-    return {"message": "this was valid"}
+    create_pr_off_main(encoded_template, filename)
+    return {"message": f"recipe found at URL {recipe_url}, opening PR"}
 
 
 if __name__ == "__main__":

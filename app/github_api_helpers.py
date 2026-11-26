@@ -6,8 +6,8 @@ from config import get_settings
 settings = get_settings()
 api_key = settings.github_api_key
 
-GITHUB_USER = 'rkaufman13'
-REPO_NAME = 'Brookland-recipe-buddy'
+GITHUB_USER = 'FILL IN YOUR GITHUB NAME'
+REPO_NAME = 'FILL IN YOUR REPO NAME'
 
 
 def gh_sesh(user, token):
@@ -26,8 +26,8 @@ class GithubResponseObj:
 def gh_get_request(s, url):
     response = s.get(url)
     response_status = response.status_code
-    if response_status > 200:
-        print(f'\n This was the response code: {response_status}')
+    if response_status // 100 !=2:
+        print(f'\n Error connecting to github: {response_status}')
         exit()
 
     json = response.json()
@@ -46,8 +46,8 @@ def gh_get_request(s, url):
 def gh_post_request(s, url, data):
     response = s.post(url, data)
     response_status = response.status_code
-    if response_status > 201:
-        print(f'\n This was the response code: {response_status}')
+    if response_status //100!= 2:
+        print(f'\n Error posting to github API: {response_status}')
         exit()
 
     json = response.json()
@@ -121,7 +121,7 @@ def create_pull_request(new_branch_name, branch_title):
     response = gh_post_request(s, url, data)
 
 
-def do_the_thing(content, filename):
+def create_pr_off_main(content, filename):
     main_sha = get_branch_sha("main")
     new_branch, new_ref, branch_name = create_new_branch(main_sha)
     new_sha = create_tree(new_branch.get('object').get('sha'), content, filename)
@@ -129,6 +129,3 @@ def do_the_thing(content, filename):
     update_ref_pointer(new_ref, new_commit)
     create_pull_request(branch_name, filename)
 
-
-if __name__ == '__main__':
-    do_the_thing("come on this is a test", 'whatever.md')
