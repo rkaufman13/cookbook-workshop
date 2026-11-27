@@ -36,7 +36,7 @@ jobs:
         working-directory: ./frontend
         run: bundle exec jekyll build
       - name: Log dir contents
-              working-directory: ./frontend
+        working-directory: ./frontend
         run: ls -l ./_site
       - name: Deploy to gh-pages branch
         id: deployment
