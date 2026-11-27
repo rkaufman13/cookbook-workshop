@@ -32,9 +32,11 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 0 # Increment this number if you need to re-download cached gems
       - name: Build with Jekyll
-        # Outputs to the './_site' directory by default
+        # Outputs to the 'frontend/_site' directory by default
+        working-directory: ./frontend
         run: bundle exec jekyll build
       - name: Log dir contents
+              working-directory: ./frontend
         run: ls -l ./_site
       - name: Deploy to gh-pages branch
         id: deployment
@@ -42,4 +44,4 @@ jobs:
         if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site # deploy src folder
+          publish_dir: .frontend/_site # deploy src folder
