@@ -34,7 +34,9 @@ jobs:
       - name: Build with Jekyll
         # Outputs to the 'frontend/_site' directory by default
         working-directory: ./frontend
-        run: bundle exec jekyll build
+        run: |
+          bundle install
+          bundle exec jekyll build
       - name: Log dir contents
         working-directory: ./frontend
         run: ls -l ./_site
